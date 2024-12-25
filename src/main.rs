@@ -1,15 +1,35 @@
-mod file_processing; // Importiere das Modul
+mod file_processing;
 
-use file_processing::{search_in_file, write_exe_files_to_file}; // Verwende die Funktionen
-use eframe::egui;
+use file_processing::{search_in_file, write_exe_files_to_file, should_update_file};
 use std::sync::{Arc, Mutex};
 use std::process::Command;
+use eframe::egui::ViewportBuilder;
 
+/// The main entry point of the application.
+///
+/// This function initializes the application by checking if the file should be updated,
+/// writing executable files to a file if necessary, and setting up the GUI options.
+/// It then runs the native eframe application.
+///
+/// # Returns
+///
+/// * `Result<(), Box<dyn std::error::Error>>` - Returns `Ok(())` if the application runs successfully,
+///   or an error if something goes wrong during initialization or execution.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Fülle die Datei 'installierte_programme.txt'
-    write_exe_files_to_file()?;
 
-    let options = eframe::NativeOptions::default();
+    if should_update_file()? {
+        write_exe_files_to_file()?;
+    }
+
+    let viewport_builder = ViewportBuilder::default()
+        .with_decorations(false)
+        .with_transparent(true)
+        .with_taskbar(false);
+
+    let options = eframe::NativeOptions {
+        viewport: viewport_builder,
+        ..Default::default()
+    };
     eframe::run_native(
         "Suche nach installierten Programmen",
         options,
@@ -45,6 +65,9 @@ impl eframe::App for MyApp {
                         .unwrap_or_else(|_| Vec::new());
                     let mut search_results = self.search_results.lock().unwrap();
                     *search_results = results;
+                };
+                if ui.button("Close").clicked() {
+                    std::process::exit(0);
                 }
             });
 
