@@ -1,0 +1,12 @@
+[package]
+name = "IsInstalled"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+winreg = "0.52.0"
+winsafe = "0.0.22"
+rayon = "1.5"
+egui = "0.30.0" 
+eframe = "0.30.0"
+winit = "0.26.0"
