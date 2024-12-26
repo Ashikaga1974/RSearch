@@ -1,6 +1,8 @@
 mod file_processing;
+mod file_config;
 
 use file_processing::{search_in_file, write_exe_files_to_file, should_update_file};
+use file_config::load_config_from_file;
 use std::sync::{Arc, Mutex};
 use std::process::Command;
 use eframe::egui::ViewportBuilder;
@@ -17,17 +19,20 @@ use eframe::egui::ViewportBuilder;
 ///   or an error if something goes wrong during initialization or execution.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 
+    let config = load_config_from_file("config.json")?;
+
     if should_update_file()? {
         write_exe_files_to_file()?;
     }
 
     let viewport_builder = ViewportBuilder::default()
-        .with_decorations(false)
+        .with_decorations(true)
         .with_transparent(true)
         .with_taskbar(false);
 
     let options = eframe::NativeOptions {
         viewport: viewport_builder,
+        centered: true,
         ..Default::default()
     };
     eframe::run_native(
@@ -55,7 +60,6 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Suche nach installierten Programmen");
 
             ui.horizontal(|ui| {
                 ui.label("Suchbegriff:");
@@ -66,9 +70,6 @@ impl eframe::App for MyApp {
                     let mut search_results = self.search_results.lock().unwrap();
                     *search_results = results;
                 };
-                if ui.button("Close").clicked() {
-                    std::process::exit(0);
-                }
             });
 
             ui.separator();
@@ -83,6 +84,8 @@ impl eframe::App for MyApp {
                     }
                 }
             }
+            let count_string =format!("Suchergebnisse: {}", search_results.len().to_string());
+            ui.heading(count_string);
         });
     }
 }
